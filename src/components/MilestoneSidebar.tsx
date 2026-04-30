@@ -4,6 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useStore } from '@/lib/store';
 import { calculateTotalExerciseDeficit } from '@/lib/physio-logic';
+import { format } from 'date-fns';
 import { Target, BarChart3, Flame } from 'lucide-react';
 
 export default function MilestoneSidebar() {
@@ -12,6 +13,11 @@ export default function MilestoneSidebar() {
   if (!params || schedule.length === 0) return null;
 
   const totalDeficit = calculateTotalExerciseDeficit(params);
+  const completedCalories = schedule
+    .filter(d => d.status === 'completed')
+    .reduce((acc, d) => acc + d.caloriesBurned, 0);
+  
+  const progressPercent = (completedCalories / totalDeficit) * 100;
   const milestones = schedule.filter(d => d.isMilestone);
 
   return (
@@ -19,7 +25,7 @@ export default function MilestoneSidebar() {
       {/* Plan Header */}
       <div className="p-6">
         <h3 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500 mb-6 flex items-center gap-2">
-          <BarChart3 size={14} /> Mission Objectives
+          <BarChart3 size={14} /> Mission Progress
         </h3>
         
         <div className="space-y-6">
@@ -32,18 +38,26 @@ export default function MilestoneSidebar() {
               <span className="text-zinc-600 text-xs font-bold uppercase ml-1">KG</span>
             </div>
             {/* Progress bar background */}
-            <div className="mt-3 h-[2px] w-full bg-zinc-800">
-               <div className="h-full bg-accent w-1/4 group-hover:w-full transition-all duration-1000" />
+            <div className="mt-3 h-[2px] w-full bg-zinc-800 relative overflow-hidden">
+               <motion.div 
+                 initial={{ width: 0 }}
+                 animate={{ width: `${Math.min(100, progressPercent)}%` }}
+                 className="h-full bg-accent shadow-[0_0_10px_#d4ff00]" 
+               />
+            </div>
+            <div className="flex justify-between mt-1">
+               <span className="text-[8px] font-bold text-zinc-600 uppercase">Burn Progress</span>
+               <span className="text-[8px] font-bold text-accent uppercase">{Math.round(progressPercent)}%</span>
             </div>
           </div>
 
           <div className="relative">
-             <div className="text-[10px] font-black uppercase text-zinc-600 mb-1">Estimated Energy Deficit</div>
+             <div className="text-[10px] font-black uppercase text-zinc-600 mb-1">Energy Deficit: <span className="text-accent">{completedCalories.toLocaleString()}</span> / {totalDeficit.toLocaleString()}</div>
              <div className="flex items-baseline gap-2">
-               <span className="text-3xl font-black italic tracking-tighter text-white tabular-nums">{totalDeficit.toLocaleString()}</span>
-               <span className="text-zinc-600 text-xs font-black uppercase tracking-widest">KCAL</span>
+               <span className="text-3xl font-black italic tracking-tighter text-white tabular-nums">{(totalDeficit - completedCalories).toLocaleString()}</span>
+               <span className="text-zinc-600 text-xs font-black uppercase tracking-widest">KCAL REMAINING</span>
              </div>
-             <div className="text-[9px] font-bold text-zinc-600 uppercase mt-1">Calculated over {schedule.length} active cycles</div>
+             <div className="text-[9px] font-bold text-zinc-600 uppercase mt-1">Targeting {params.targetWeight}kg by {format(params.targetDate, 'MMM d, yyyy')}</div>
           </div>
 
           {/* Trajectory Mini-Chart */}

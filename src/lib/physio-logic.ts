@@ -14,6 +14,7 @@ export interface PhysioParams {
 export interface WorkoutDay {
   date: Date;
   type: 'running' | 'cycling' | 'rest';
+  status: 'planned' | 'completed' | 'missed';
   durationMinutes: number;
   distanceKm: number;
   caloriesBurned: number;
@@ -106,6 +107,7 @@ export function generateWorkoutSchedule(params: PhysioParams): WorkoutDay[] {
     schedule.push({
       date: currentDate,
       type,
+      status: 'planned',
       durationMinutes: Math.round(durationMinutes),
       distanceKm: parseFloat(distanceKm.toFixed(2)),
       caloriesBurned: Math.round(caloriesBurned),

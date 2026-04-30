@@ -8,6 +8,7 @@ import { Bike, Footprints, Coffee, Target, Timer, Map } from 'lucide-react';
 
 export default function Calendar() {
   const schedule = useStore((state) => state.schedule);
+  const toggleDayStatus = useStore((state) => state.toggleDayStatus);
   
   if (schedule.length === 0) return null;
 
@@ -47,10 +48,12 @@ export default function Calendar() {
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ y: -5, borderColor: 'var(--color-accent)' }}
             transition={{ duration: 0.3 }}
-            className={`group p-6 border transition-all duration-300 relative overflow-hidden ${
-              day.isMilestone 
-                ? 'bg-accent/5 border-accent/20' 
-                : 'bg-surface border-border hover:bg-zinc-900/50 hover:border-zinc-700'
+            onClick={() => toggleDayStatus(day.date)}
+            className={`group p-6 border transition-all duration-300 relative overflow-hidden cursor-pointer ${
+              day.status === 'completed' ? 'bg-accent/10 border-accent/40 shadow-[0_0_20px_rgba(212,255,0,0.1)]' :
+              day.status === 'missed' ? 'bg-red-500/5 border-red-500/20 grayscale' :
+              day.isMilestone ? 'bg-accent/5 border-accent/20' : 
+              'bg-surface border-border hover:bg-zinc-900/50 hover:border-zinc-700'
             }`}
           >
             {/* Background Texture for Milestone */}
@@ -69,9 +72,17 @@ export default function Calendar() {
                    {format(new Date(day.date), 'MMM d')}
                 </div>
               </div>
-              {day.isMilestone && (
+              {day.isMilestone ? (
                 <div className="bg-accent text-black text-[9px] font-black px-2 py-0.5 slant-clip italic">
                   TARGET CHECK-IN
+                </div>
+              ) : (
+                <div className={`text-[9px] font-black px-2 py-0.5 slant-clip italic ${
+                  day.status === 'completed' ? 'bg-accent text-black' : 
+                  day.status === 'missed' ? 'bg-red-500 text-white' : 
+                  'bg-zinc-800 text-zinc-500'
+                }`}>
+                  {day.status.toUpperCase()}
                 </div>
               )}
             </div>
