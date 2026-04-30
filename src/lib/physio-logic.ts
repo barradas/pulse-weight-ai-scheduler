@@ -1,4 +1,4 @@
-import { addDays, differenceInDays, isSameDay } from 'date-fns';
+import { addDays, differenceInDays } from 'date-fns';
 
 export interface PhysioParams {
   currentWeight: number; // kg
@@ -21,6 +21,9 @@ export interface WorkoutDay {
   milestoneWeight?: number;
 }
 
+/**
+ * Mifflin-St Jeor Equation for Basal Metabolic Rate
+ */
 export function calculateBMR(params: PhysioParams): number {
   const { currentWeight, height, age, gender } = params;
   if (gender === 'male') {
@@ -30,9 +33,13 @@ export function calculateBMR(params: PhysioParams): number {
   }
 }
 
+/**
+ * Calculate total caloric deficit required to reach target weight.
+ * 1kg of body fat is approximately 7,700 kcal.
+ */
 export function calculateTotalExerciseDeficit(params: PhysioParams): number {
   const weightToLose = params.currentWeight - params.targetWeight;
-  return weightToLose * 7700; // 7,700 kcal per kg
+  return Math.max(0, weightToLose * 7700);
 }
 
 export function generateWorkoutSchedule(params: PhysioParams): WorkoutDay[] {
@@ -41,7 +48,11 @@ export function generateWorkoutSchedule(params: PhysioParams): WorkoutDay[] {
   
   if (totalDays <= 0) return [];
 
-  const dailyExerciseDeficit = totalDeficit / totalDays;
+  // Calculate workout vs rest days to find the load multiplier
+  // 3-day cycle (2 work, 1 rest) means 2/3 of days are active.
+  const activeDaysCount = Math.ceil((totalDays + 1) * (2 / 3));
+  const perActiveDayDeficit = totalDeficit / activeDaysCount;
+
   const schedule: WorkoutDay[] = [];
 
   const milestones = [
@@ -55,9 +66,6 @@ export function generateWorkoutSchedule(params: PhysioParams): WorkoutDay[] {
     const currentDate = addDays(params.startDate, i);
     const isMilestone = milestones.includes(i);
     
-    // Simple alternation logic: Run, Cycle, Rest (3-day cycle)
-    // Or maybe 5 days on, 2 days off? 
-    // Let's do 2 days on (Alternating Run/Cycle), 1 day rest
     const cyclePos = i % 3;
     let type: 'running' | 'cycling' | 'rest' = 'rest';
     let caloriesBurned = 0;
@@ -66,24 +74,27 @@ export function generateWorkoutSchedule(params: PhysioParams): WorkoutDay[] {
 
     if (cyclePos === 0) {
       type = 'running';
-      caloriesBurned = dailyExerciseDeficit * 1.5;
-      distanceKm = caloriesBurned / params.currentWeight / 1.0; 
+      caloriesBurned = perActiveDayDeficit;
       
-      // Speed adjustments based on intensity
-      const speedKmh = params.intensityPreference === 'high' ? 12 : 8; // 12 km/h vs 8 km/h
+      // Net burn for running is ~1 kcal/kg/km
+      distanceKm = caloriesBurned / params.currentWeight;
+      
+      const speedKmh = params.intensityPreference === 'high' ? 12 : 9; 
       durationMinutes = (distanceKm / speedKmh) * 60;
     } else if (cyclePos === 1) {
       type = 'cycling';
-      caloriesBurned = dailyExerciseDeficit * 1.5;
-      distanceKm = caloriesBurned / params.currentWeight / 0.4;
+      caloriesBurned = perActiveDayDeficit;
       
-      const speedKmh = params.intensityPreference === 'high' ? 25 : 15; // 25 km/h vs 15 km/h
+      /**
+       * Cycling burn is more variable. 
+       * Low intensity (~15km/h): ~0.35 kcal/kg/km
+       * High intensity (~25km/h): ~0.45 kcal/kg/km
+       */
+      const efficiency = params.intensityPreference === 'high' ? 0.45 : 0.35;
+      distanceKm = caloriesBurned / (params.currentWeight * efficiency);
+      
+      const speedKmh = params.intensityPreference === 'high' ? 26 : 18;
       durationMinutes = (distanceKm / speedKmh) * 60;
-    } else {
-      type = 'rest';
-      caloriesBurned = 0;
-      distanceKm = 0;
-      durationMinutes = 0;
     }
 
     let milestoneWeight: number | undefined;
@@ -102,6 +113,13 @@ export function generateWorkoutSchedule(params: PhysioParams): WorkoutDay[] {
       milestoneWeight: milestoneWeight ? parseFloat(milestoneWeight.toFixed(1)) : undefined
     });
   }
+
+  /**
+   * Final Validation: Ensure total burn matches goal.
+   * If there's a significant drift due to rounding or edge cases, 
+   * we could apply a correction to the last day, but for a 
+   * scheduler, a clean trajectory is better.
+   */
 
   return schedule;
 }

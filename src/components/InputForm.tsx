@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useStore } from '@/lib/store';
 import { PhysioParams } from '@/lib/physio-logic';
 import { addDays, format } from 'date-fns';
+import { ChevronRight, Weight, Calendar as CalendarIcon, User } from 'lucide-react';
 
 export default function InputForm() {
   const setParams = useStore((state) => state.setParams);
@@ -36,105 +37,126 @@ export default function InputForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 max-w-md w-full">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Your Plan</h2>
+    <form onSubmit={handleSubmit} className="bg-surface p-8 rounded-none border border-border max-w-xl w-full relative animate-fade-up">
+      {/* Decorative Accent Line */}
+      <div className="absolute top-0 left-0 w-1 h-full bg-accent glow-accent" />
       
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Current Weight (kg)</label>
-            <input
-              type="number"
-              name="currentWeight"
-              value={formData.currentWeight}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
-              required
-            />
+      <div className="mb-10">
+        <h2 className="text-3xl font-black italic uppercase tracking-tighter mb-2 italic">Performance Setup</h2>
+        <div className="h-1 w-12 bg-accent" />
+      </div>
+      
+      <div className="space-y-8">
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-zinc-500 mb-2">
+            <Weight size={14} /> Metrics
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Target Weight (kg)</label>
-            <input
-              type="number"
-              name="targetWeight"
-              value={formData.targetWeight}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
-              required
-            />
+          <div className="grid grid-cols-2 gap-6">
+            <div className="group">
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2 group-focus-within:text-accent transition-colors">Current Weight (kg)</label>
+              <input
+                type="number"
+                name="currentWeight"
+                value={formData.currentWeight}
+                onChange={handleChange}
+                className="w-full bg-zinc-900/50 border-b border-zinc-800 p-3 text-2xl font-black focus:border-accent outline-none transition-all placeholder:text-zinc-700"
+                required
+              />
+            </div>
+            <div className="group">
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2 group-focus-within:text-accent transition-colors">Target Weight (kg)</label>
+              <input
+                type="number"
+                name="targetWeight"
+                value={formData.targetWeight}
+                onChange={handleChange}
+                className="w-full bg-zinc-900/50 border-b border-zinc-800 p-3 text-2xl font-black focus:border-accent outline-none transition-all placeholder:text-zinc-700"
+                required
+              />
+            </div>
           </div>
-        </div>
+        </section>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Target Date</label>
-          <input
-            type="date"
-            name="targetDate"
-            value={formData.targetDate}
-            onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
-            required
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-zinc-500 mb-2">
+            <CalendarIcon size={14} /> Timeline
+          </div>
+          <div className="group">
+            <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2 group-focus-within:text-accent transition-colors">Target Deadline</label>
             <input
-              type="number"
-              name="age"
-              value={formData.age}
+              type="date"
+              name="targetDate"
+              value={formData.targetDate}
               onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full bg-zinc-900/50 border-b border-zinc-800 p-3 text-xl font-bold focus:border-accent outline-none transition-all"
               required
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Height (cm)</label>
-            <input
-              type="number"
-              name="height"
-              value={formData.height}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
-              required
-            />
-          </div>
-        </div>
+        </section>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
-            <select
-              name="gender"
-              value={formData.gender}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
-            >
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-            </select>
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-zinc-500 mb-2">
+            <User size={14} /> Physiology
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Intensity</label>
-            <select
-              name="intensityPreference"
-              value={formData.intensityPreference}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
-            >
-              <option value="low">Low Intensity (Longer)</option>
-              <option value="high">High Intensity (Shorter)</option>
-            </select>
+          <div className="grid grid-cols-2 gap-6">
+            <div className="group">
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2 group-focus-within:text-accent transition-colors">Age</label>
+              <input
+                type="number"
+                name="age"
+                value={formData.age}
+                onChange={handleChange}
+                className="w-full bg-zinc-900/50 border-b border-zinc-800 p-3 text-xl font-bold focus:border-accent outline-none transition-all"
+                required
+              />
+            </div>
+            <div className="group">
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2 group-focus-within:text-accent transition-colors">Height (cm)</label>
+              <input
+                type="number"
+                name="height"
+                value={formData.height}
+                onChange={handleChange}
+                className="w-full bg-zinc-900/50 border-b border-zinc-800 p-3 text-xl font-bold focus:border-accent outline-none transition-all"
+                required
+              />
+            </div>
           </div>
-        </div>
+
+          <div className="grid grid-cols-2 gap-6 pt-2">
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Gender</label>
+              <select
+                name="gender"
+                value={formData.gender}
+                onChange={handleChange}
+                className="w-full bg-zinc-900/50 border-b border-zinc-800 p-3 font-bold focus:border-accent outline-none transition-all appearance-none cursor-pointer"
+              >
+                <option value="male">MALE</option>
+                <option value="female">FEMALE</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Protocol Intensity</label>
+              <select
+                name="intensityPreference"
+                value={formData.intensityPreference}
+                onChange={handleChange}
+                className="w-full bg-zinc-900/50 border-b border-zinc-800 p-3 font-bold focus:border-accent outline-none transition-all appearance-none cursor-pointer"
+              >
+                <option value="low">LOW INTENSITY</option>
+                <option value="high">HIGH INTENSITY</option>
+              </select>
+            </div>
+          </div>
+        </section>
       </div>
 
       <button
         type="submit"
-        className="w-full mt-8 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-md transition-colors shadow-md"
+        className="group w-full mt-12 bg-accent text-black font-black italic uppercase tracking-tighter py-5 text-xl transition-all hover:bg-[#e6ff4d] flex items-center justify-center gap-2 slant-clip active:scale-[0.98]"
       >
-        Generate Schedule
+        Calculate Protocol <ChevronRight className="group-hover:translate-x-1 transition-transform" />
       </button>
     </form>
   );

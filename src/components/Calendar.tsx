@@ -2,82 +2,120 @@
 
 import React from 'react';
 import { useStore } from '@/lib/store';
-import { format, isSameMonth, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, isSameDay } from 'date-fns';
-import { Bike, Footprints, Coffee, Target } from 'lucide-react';
+import { format } from 'date-fns';
+import { Bike, Footprints, Coffee, Target, Timer, Map } from 'lucide-react';
 
 export default function Calendar() {
   const schedule = useStore((state) => state.schedule);
   
   if (schedule.length === 0) return null;
 
-  // For simplicity, we'll show all days in the schedule range
-  // In a real app, you might want to group by month
-  const startDate = schedule[0].date;
-  const endDate = schedule[schedule.length - 1].date;
-
-  const getWorkoutForDate = (date: Date) => {
-    return schedule.find(s => isSameDay(new Date(s.date), date));
-  };
-
   return (
-    <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 w-full overflow-x-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Workout Calendar</h2>
-        <div className="flex gap-4 text-sm">
-          <div className="flex items-center gap-1"><Footprints size={16} className="text-blue-500"/> Running</div>
-          <div className="flex items-center gap-1"><Bike size={16} className="text-green-500"/> Cycling</div>
-          <div className="flex items-center gap-1"><Coffee size={16} className="text-gray-400"/> Rest</div>
+    <div className="space-y-8 animate-fade-up">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pb-6 border-b border-border">
+        <div>
+          <h2 className="text-4xl font-black italic uppercase tracking-tighter italic">Training Log</h2>
+          <p className="text-zinc-500 font-bold uppercase tracking-[0.2em] text-[10px] mt-1">Daily Performance Breakdown</p>
+        </div>
+        <div className="flex gap-6">
+          <div className="flex items-center gap-2 group">
+            <div className="w-2 h-2 rounded-full bg-blue-500 group-hover:glow-accent transition-all" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Run</span>
+          </div>
+          <div className="flex items-center gap-2 group">
+            <div className="w-2 h-2 rounded-full bg-accent" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Cycle</span>
+          </div>
+          <div className="flex items-center gap-2 group">
+            <div className="w-2 h-2 rounded-full bg-zinc-700" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Rest</span>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-1">
         {schedule.map((day, idx) => (
           <div 
             key={idx} 
-            className={`p-4 rounded-lg border-2 transition-all ${
-              day.isMilestone ? 'border-amber-400 bg-amber-50' : 'border-gray-100 hover:border-blue-200'
+            className={`group p-6 border transition-all duration-300 relative overflow-hidden ${
+              day.isMilestone 
+                ? 'bg-accent/5 border-accent/20' 
+                : 'bg-surface border-border hover:bg-zinc-900/50 hover:border-zinc-700'
             }`}
           >
-            <div className="flex justify-between items-start mb-2">
-              <span className="font-semibold text-gray-600">
-                {format(new Date(day.date), 'EEE, MMM d')}
-              </span>
+            {/* Background Texture for Milestone */}
+            {day.isMilestone && (
+              <div className="absolute top-0 right-0 p-2 opacity-10">
+                <Target size={80} className="text-accent" />
+              </div>
+            )}
+
+            <div className="flex justify-between items-start mb-6 relative z-10">
+              <div>
+                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-1">
+                  {format(new Date(day.date), 'EEEE')}
+                </div>
+                <div className="text-xl font-black tabular-nums tracking-tighter">
+                   {format(new Date(day.date), 'MMM d')}
+                </div>
+              </div>
               {day.isMilestone && (
-                <span className="bg-amber-400 text-amber-900 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                  <Target size={10} /> MILESTONE
-                </span>
+                <div className="bg-accent text-black text-[9px] font-black px-2 py-0.5 slant-clip italic">
+                  TARGET CHECK-IN
+                </div>
               )}
             </div>
 
-            <div className="flex items-center gap-3 mb-2">
-              <div className={`p-2 rounded-full ${
-                day.type === 'running' ? 'bg-blue-100 text-blue-600' :
-                day.type === 'cycling' ? 'bg-green-100 text-green-600' :
-                'bg-gray-100 text-gray-400'
-              }`}>
-                {day.type === 'running' ? <Footprints size={20} /> :
-                 day.type === 'cycling' ? <Bike size={20} /> :
-                 <Coffee size={20} />}
+            <div className="flex items-center gap-4 mb-8 relative z-10">
+              <div className={`p-4 ${
+                day.type === 'running' ? 'bg-blue-600 text-white' :
+                day.type === 'cycling' ? 'bg-accent text-black' :
+                'bg-zinc-800 text-zinc-500'
+              } slant-clip`}>
+                {day.type === 'running' ? <Footprints size={24} /> :
+                 day.type === 'cycling' ? <Bike size={24} /> :
+                 <Coffee size={24} />}
               </div>
               <div>
-                <div className="font-bold text-gray-800 capitalize">{day.type}</div>
+                <div className="text-lg font-black uppercase italic tracking-tighter">
+                  {day.type === 'rest' ? 'RECOVERY' : day.type}
+                </div>
                 {day.type !== 'rest' && (
-                  <div className="text-xs text-gray-500">{day.durationMinutes} mins • {day.distanceKm} km</div>
+                  <div className="flex gap-3 mt-1">
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-zinc-500">
+                      <Timer size={12} className="text-zinc-600" /> {day.durationMinutes}M
+                    </div>
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-zinc-500">
+                      <Map size={12} className="text-zinc-600" /> {day.distanceKm}KM
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
 
-            {day.type !== 'rest' && (
-              <div className="text-sm font-medium text-gray-600 mt-2">
-                Burn: <span className="text-orange-600">{day.caloriesBurned} kcal</span>
+            {day.type !== 'rest' ? (
+              <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-zinc-800/50 relative z-10">
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Expected Burn</span>
+                  <span className="text-lg font-black italic text-accent tabular-nums">-{day.caloriesBurned} <span className="text-[10px] not-italic">KCAL</span></span>
+                </div>
+                {day.isMilestone && (
+                  <div className="flex flex-col border-l border-zinc-800/50 pl-4">
+                    <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Target Weight</span>
+                    <span className="text-lg font-black italic text-white tabular-nums">{day.milestoneWeight} <span className="text-[10px] not-italic">KG</span></span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="mt-4 pt-4 border-t border-zinc-800/50 relative z-10">
+                 <p className="text-[10px] font-medium text-zinc-600 leading-relaxed italic">
+                   Active recovery phase. Focus on mobility and nutrition for next-day output.
+                 </p>
               </div>
             )}
-
-            {day.isMilestone && (
-              <div className="mt-3 pt-3 border-t border-amber-200 text-sm font-bold text-amber-800">
-                Target Weight: {day.milestoneWeight} kg
-              </div>
-            )}
+            
+            {/* Hover Accent Line */}
+            <div className="absolute bottom-0 left-0 w-full h-[2px] bg-accent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
           </div>
         ))}
       </div>
