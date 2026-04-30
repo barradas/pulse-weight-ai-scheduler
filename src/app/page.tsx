@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import InputForm from '@/components/InputForm';
 import Calendar from '@/components/Calendar';
 import MilestoneSidebar from '@/components/MilestoneSidebar';
@@ -42,11 +43,18 @@ export default function Home() {
 
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12 py-12 relative z-10">
         {/* Navigation / Header */}
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-8">
+        <motion.header 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-8"
+        >
           <div className="flex items-center gap-4">
-            <div className="bg-accent p-3 slant-clip text-black shadow-[0_0_20px_rgba(212,255,0,0.3)]">
+            <motion.div 
+              whileHover={{ scale: 1.05, rotate: 5 }}
+              className="bg-accent p-3 slant-clip text-black shadow-[0_0_20px_rgba(212,255,0,0.3)]"
+            >
               <Zap size={28} className="fill-current" />
-            </div>
+            </motion.div>
             <div>
               <h1 className="text-4xl font-[900] italic uppercase tracking-tighter text-white">
                 PulseWeight <span className="text-accent">OS</span>
@@ -76,7 +84,7 @@ export default function Home() {
               </button>
             </div>
           )}
-        </header>
+        </motion.header>
 
         {/* Content Matrix */}
         {!params ? (

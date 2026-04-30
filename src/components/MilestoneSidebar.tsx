@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { motion } from 'framer-motion';
 import { useStore } from '@/lib/store';
 import { calculateTotalExerciseDeficit } from '@/lib/physio-logic';
 import { Target, BarChart3, Flame } from 'lucide-react';
@@ -43,6 +44,42 @@ export default function MilestoneSidebar() {
                <span className="text-zinc-600 text-xs font-black uppercase tracking-widest">KCAL</span>
              </div>
              <div className="text-[9px] font-bold text-zinc-600 uppercase mt-1">Calculated over {schedule.length} active cycles</div>
+          </div>
+
+          {/* Trajectory Mini-Chart */}
+          <div className="pt-4 h-24 w-full relative">
+            <svg className="w-full h-full" viewBox="0 0 200 60">
+              <defs>
+                <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#d4ff00" stopOpacity="0.2" />
+                  <stop offset="100%" stopColor="#d4ff00" stopOpacity="1" />
+                </linearGradient>
+              </defs>
+              {/* Grid Lines */}
+              <line x1="0" y1="10" x2="200" y2="10" stroke="#262626" strokeWidth="0.5" />
+              <line x1="0" y1="30" x2="200" y2="30" stroke="#262626" strokeWidth="0.5" />
+              <line x1="0" y1="50" x2="200" y2="50" stroke="#262626" strokeWidth="0.5" />
+              
+              {/* Trajectory Line */}
+              <motion.path 
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 1.5, ease: "easeInOut" }}
+                d="M 10 15 L 60 25 L 110 35 L 160 45 L 190 50" 
+                fill="none" 
+                stroke="url(#lineGradient)" 
+                strokeWidth="3" 
+                strokeLinecap="round"
+              />
+              
+              {/* Data Points */}
+              <circle cx="10" cy="15" r="3" fill="#262626" stroke="#d4ff00" strokeWidth="1" />
+              <circle cx="190" cy="50" r="4" fill="#d4ff00" />
+            </svg>
+            <div className="flex justify-between mt-1 px-1">
+               <span className="text-[8px] font-bold text-zinc-600 uppercase">START</span>
+               <span className="text-[8px] font-bold text-accent uppercase">TARGET</span>
+            </div>
           </div>
         </div>
       </div>

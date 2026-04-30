@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useStore } from '@/lib/store';
 import { PhysioParams } from '@/lib/physio-logic';
 import { addDays, format } from 'date-fns';
@@ -37,7 +38,12 @@ export default function InputForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-surface p-8 rounded-none border border-border max-w-xl w-full relative animate-fade-up">
+    <motion.form 
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      onSubmit={handleSubmit} 
+      className="bg-surface p-8 rounded-none border border-border max-w-xl w-full relative animate-fade-up"
+    >
       {/* Decorative Accent Line */}
       <div className="absolute top-0 left-0 w-1 h-full bg-accent glow-accent" />
       
@@ -152,12 +158,14 @@ export default function InputForm() {
         </section>
       </div>
 
-      <button
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
         type="submit"
         className="group w-full mt-12 bg-accent text-black font-black italic uppercase tracking-tighter py-5 text-xl transition-all hover:bg-[#e6ff4d] flex items-center justify-center gap-2 slant-clip active:scale-[0.98]"
       >
         Calculate Protocol <ChevronRight className="group-hover:translate-x-1 transition-transform" />
-      </button>
-    </form>
+      </motion.button>
+    </motion.form>
   );
 }

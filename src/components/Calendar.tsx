@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { motion } from 'framer-motion';
 import { useStore } from '@/lib/store';
 import { format } from 'date-fns';
 import { Bike, Footprints, Coffee, Target, Timer, Map } from 'lucide-react';
@@ -33,10 +34,19 @@ export default function Calendar() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-1">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ staggerChildren: 0.05 }}
+        className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-1"
+      >
         {schedule.map((day, idx) => (
-          <div 
+          <motion.div 
             key={idx} 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileHover={{ y: -5, borderColor: 'var(--color-accent)' }}
+            transition={{ duration: 0.3 }}
             className={`group p-6 border transition-all duration-300 relative overflow-hidden ${
               day.isMilestone 
                 ? 'bg-accent/5 border-accent/20' 
@@ -116,9 +126,9 @@ export default function Calendar() {
             
             {/* Hover Accent Line */}
             <div className="absolute bottom-0 left-0 w-full h-[2px] bg-accent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 }
