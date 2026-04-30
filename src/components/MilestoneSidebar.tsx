@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useStore } from '@/lib/store';
-import { calculateTotalExerciseDeficit } from '@/lib/physio-logic';
+import { calculateTotalExerciseDeficit, calculateMacros } from '@/lib/physio-logic';
 import { format } from 'date-fns';
 import { Target, BarChart3, Flame } from 'lucide-react';
 
@@ -146,7 +146,41 @@ export default function MilestoneSidebar() {
           {Math.round(schedule.reduce((acc, d) => acc + d.caloriesBurned, 0) / schedule.length)}
           <span className="text-zinc-600 text-xs not-italic font-black ml-2 uppercase tracking-widest">KCAL/DAY</span>
         </div>
-        <p className="text-[10px] font-medium text-zinc-600 italic">Average requirement to maintain trajectory.</p>
+        <p className="text-[10px] font-medium text-zinc-600 italic mb-8">Average requirement to maintain trajectory.</p>
+
+        {/* Fuel Matrix */}
+        {(() => {
+          const nextPlanned = schedule.find(d => d.status === 'planned') || schedule[schedule.length - 1];
+          const macros = calculateMacros(params, nextPlanned.type);
+          return (
+            <div className="pt-6 border-t border-zinc-800">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Fuel Matrix</span>
+                <span className="text-[9px] font-bold text-accent px-2 py-0.5 bg-accent/10 slant-clip italic">
+                  {nextPlanned.type.toUpperCase()}
+                </span>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-2">
+                <div className="bg-zinc-900/50 p-3 rounded-none border border-zinc-800">
+                  <div className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-1">PRO</div>
+                  <div className="text-lg font-black text-white italic tabular-nums">{macros.protein}g</div>
+                </div>
+                <div className="bg-zinc-900/50 p-3 rounded-none border border-zinc-800">
+                  <div className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-1">CARB</div>
+                  <div className="text-lg font-black text-white italic tabular-nums">{macros.carbs}g</div>
+                </div>
+                <div className="bg-zinc-900/50 p-3 rounded-none border border-zinc-800">
+                  <div className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-1">FAT</div>
+                  <div className="text-lg font-black text-white italic tabular-nums">{macros.fats}g</div>
+                </div>
+              </div>
+              <div className="mt-3 text-[9px] font-medium text-zinc-600 italic">
+                Target Intake: {macros.totalCalories} kcal. Maintain this baseline to fuel performance while burning fat via activity.
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

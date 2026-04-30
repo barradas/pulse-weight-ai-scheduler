@@ -125,3 +125,103 @@ export function generateWorkoutSchedule(params: PhysioParams): WorkoutDay[] {
 
   return schedule;
 }
+
+/**
+ * Recalculate remaining workouts based on completed and missed sessions.
+ * Redistributes the remaining caloric debt across the remaining planned active days.
+ */
+export function recalibrateSchedule(schedule: WorkoutDay[], params: PhysioParams): WorkoutDay[] {
+  const totalDeficit = calculateTotalExerciseDeficit(params);
+  
+  const completedCalories = schedule
+    .filter(d => d.status === 'completed')
+    .reduce((sum, d) => sum + d.caloriesBurned, 0);
+    
+  const remainingDeficit = Math.max(0, totalDeficit - completedCalories);
+  
+  const remainingPlannedActiveDays = schedule.filter(
+    d => d.status === 'planned' && d.type !== 'rest'
+  );
+  
+  if (remainingPlannedActiveDays.length === 0) return schedule;
+  
+  const newPerActiveDayDeficit = remainingDeficit / remainingPlannedActiveDays.length;
+  
+  return schedule.map(day => {
+    // Only recalibrate future/planned active days
+    if (day.status !== 'planned' || day.type === 'rest') return day;
+    
+    const caloriesBurned = newPerActiveDayDeficit;
+    let distanceKm = 0;
+    let durationMinutes = 0;
+    
+    if (day.type === 'running') {
+      distanceKm = caloriesBurned / params.currentWeight;
+      const speedKmh = params.intensityPreference === 'high' ? 12 : 9; 
+      durationMinutes = (distanceKm / speedKmh) * 60;
+    } else if (day.type === 'cycling') {
+      const efficiency = params.intensityPreference === 'high' ? 0.45 : 0.35;
+      distanceKm = caloriesBurned / (params.currentWeight * efficiency);
+      const speedKmh = params.intensityPreference === 'high' ? 26 : 18;
+      durationMinutes = (distanceKm / speedKmh) * 60;
+    }
+    
+    return {
+      ...day,
+      caloriesBurned: Math.round(caloriesBurned),
+      distanceKm: parseFloat(distanceKm.toFixed(2)),
+      durationMinutes: Math.round(durationMinutes)
+    };
+  });
+}
+
+export interface MacroSplit {
+  protein: number; // grams
+  carbs: number; // grams
+  fats: number; // grams
+  totalCalories: number;
+}
+
+/**
+ * Calculates daily macro targets based on the workout type and BMR.
+ */
+export function calculateMacros(params: PhysioParams, dayType: 'running' | 'cycling' | 'rest'): MacroSplit {
+  const bmr = calculateBMR(params);
+  // NEAT + basic activity multiplier (~1.2 for sedentary outside of workouts)
+  const maintenanceCalories = bmr * 1.2; 
+  
+  // To lose weight, we assume the diet itself is in a slight deficit or at maintenance.
+  // The app assumes "neutral caloric intake" earlier, meaning we eat maintenance and burn via exercise.
+  // For the macro matrix, we will prescribe a maintenance diet optimized for performance.
+  const targetDietCalories = maintenanceCalories; 
+
+  const weightLbs = params.currentWeight * 2.20462;
+  
+  let protein = 0;
+  let carbs = 0;
+  let fats = 0;
+
+  if (dayType === 'running') {
+    // High glycogen demand
+    protein = weightLbs * 1.0; // 1g per lb
+    fats = (targetDietCalories * 0.25) / 9; // 25% from fats
+    carbs = (targetDietCalories - (protein * 4) - (fats * 9)) / 4;
+  } else if (dayType === 'cycling') {
+    // Moderate glycogen demand
+    protein = weightLbs * 1.0;
+    fats = (targetDietCalories * 0.30) / 9; // 30% from fats
+    carbs = (targetDietCalories - (protein * 4) - (fats * 9)) / 4;
+  } else {
+    // Rest day - prioritize protein and fat for recovery, lower carbs
+    protein = weightLbs * 1.2; // 1.2g per lb
+    fats = (targetDietCalories * 0.35) / 9; // 35% from fats
+    carbs = (targetDietCalories - (protein * 4) - (fats * 9)) / 4;
+  }
+
+  return {
+    protein: Math.round(protein),
+    carbs: Math.round(carbs),
+    fats: Math.round(fats),
+    totalCalories: Math.round(targetDietCalories)
+  };
+}

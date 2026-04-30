@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { PhysioParams, WorkoutDay, generateWorkoutSchedule } from './physio-logic';
+import { PhysioParams, WorkoutDay, generateWorkoutSchedule, recalibrateSchedule } from './physio-logic';
 
 interface AppState {
   params: PhysioParams | null;
@@ -17,10 +17,13 @@ export const useStore = create<AppState>((set) => ({
     set({ params, schedule });
     // LocalStorage persistence
     localStorage.setItem('pulseweight-params', JSON.stringify(params));
+    localStorage.setItem('pulseweight-schedule', JSON.stringify(schedule));
   },
   toggleDayStatus: (date: Date) => {
     set((state) => {
-      const newSchedule = state.schedule.map((day) => {
+      if (!state.params) return state;
+
+      const updatedSchedule = state.schedule.map((day) => {
         if (day.date.getTime() === date.getTime()) {
           const statusOrder: ('planned' | 'completed' | 'missed')[] = ['planned', 'completed', 'missed'];
           const currentIndex = statusOrder.indexOf(day.status);
@@ -29,8 +32,11 @@ export const useStore = create<AppState>((set) => ({
         }
         return day;
       });
-      localStorage.setItem('pulseweight-schedule', JSON.stringify(newSchedule));
-      return { schedule: newSchedule };
+      
+      const recalibratedSchedule = recalibrateSchedule(updatedSchedule, state.params);
+      
+      localStorage.setItem('pulseweight-schedule', JSON.stringify(recalibratedSchedule));
+      return { schedule: recalibratedSchedule };
     });
   },
   reset: () => {
